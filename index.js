@@ -5,6 +5,7 @@ const replaceInFile = require('replace-in-file');
 const { Command } = require('commander');
 const inquirer = require('inquirer');
 const open = require('open');
+const path = require('path');
 const fs = require('fs');
 
 const program = new Command();
@@ -40,12 +41,14 @@ function execute(opts) {
 
 const jms = {
     token: '',
-    setup: async (path = `${process.cwd()}`) => {
-        if (!fs.existsSync(`${path}/setup`)) {
+    setup: async (route = process.cwd()) => {
+        route = JSON.stringify(route || {}) === '{}' ? process.cwd() : route;
+        const setupPath = path.resolve(route, 'setup');
+        if (!fs.existsSync(setupPath)) {
             return errorMessage('The setup command requires to be run in an JMS project, but a project setup could not be found.');
         }
 
-        return execute({ command: `cd ${path}/setup && npm i && ts-node setup.ts` });
+        return execute({ command: `cd ${setupPath} && npm i && ts-node setup.ts` });
     },
     init: async () => {
         const tokenExecute = await execute({ command: 'firebase login:ci --interactive' });
@@ -186,14 +189,14 @@ const jms = {
         const quickRemoteExecute = await execute({ command: `npx @jaspero/quick-remote r Jaspero/jms -p ${data.github} -f ${flavor}` });
 
         if (!quickRemoteExecute.success) {
-            if (fs.existsSync(`${process.cwd()}/${githubProject}`)) {
+            if (fs.existsSync(path.resolve(process.cwd(), githubProject))) {
                 return errorMessage(`Error: Directory '${githubProject}' already exists!`);
             }
 
             return errorMessage(`Error: Failed to fetch '${data.github}' repository.\nCheck for misspellings and access permission to this repository.`);
         }
 
-        await execute({ command: `cd ${process.cwd()}/${githubProject}` });
+        await execute({ command: `cd ${path.resolve(process.cwd(), githubProject)}` });
 
         setTimeout(() => {
             open(`https://console.firebase.google.com/project/${data.projectId}/settings/serviceaccounts/adminsdk`);
@@ -205,7 +208,7 @@ const jms = {
         while (!serviceAccountKey) {
             await pressEnter();
 
-            serviceAccountKey = fs.existsSync(`${process.cwd()}/${githubProject}/setup/serviceAccountKey.json`);
+            serviceAccountKey = fs.existsSync(`${path.resolve(process.cwd(), githubProject, 'setup', 'serviceAccountKey.json')}`);
             if (!serviceAccountKey) {
                 console.log('\x1b[31m%s\x1b[0m', `\nFile 'serviceAccountKey.json' not found. Please check '${githubProject}/setup' directory.\n`);
             }
@@ -280,7 +283,7 @@ const jms = {
         });
 
         if (setup.run) {
-            return jms.setup(`${process.cwd()}/${githubProject}`);
+            return jms.setup(path.resolve(process.cwd(), githubProject));
         }
 
         console.log('\x1b[32m%s\x1b[0m', 'Successfully created JMS project!');

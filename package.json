@@ -4,9 +4,9 @@
   "description": "Command line tool for Jaspero products",
   "main": "index.js",
   "bin": {
+    "jpc": "./index.js",
     "jaspero": "./index.js",
-    "jaspero-cli": "./index.js",
-    "jpc": "./index.js"
+    "jaspero-cli": "./index.js"
   },
   "scripts": {
     "start": "node index.js",
@@ -21,10 +21,10 @@
     "access": "public"
   },
   "dependencies": {
-    "commander": "^7.1.0",
-    "inquirer": "^7.3.3",
-    "open": "^7.4.1",
-    "replace-in-file": "^6.2.0"
+    "commander": "7.1.0",
+    "inquirer": "7.3.3",
+    "open": "7.4.1",
+    "replace-in-file": "6.2.0"
   },
   "repository": {
     "type": "git",
