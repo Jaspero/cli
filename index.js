@@ -48,7 +48,7 @@ const jms = {
             return errorMessage('The setup command requires to be run in an JMS project, but a project setup could not be found.');
         }
 
-        return execute({ command: `cd ${setupPath} && npm i && ts-node setup.ts` });
+        return execute({ command: `cd ${setupPath} && npm i && ts-node setup.ts`, options: {} });
     },
     init: async () => {
         const tokenExecute = await execute({ command: 'firebase login:ci --interactive' });
@@ -178,7 +178,7 @@ const jms = {
             if (!createProjectExecute.success) {
                 return errorMessage(createProjectExecute.message);
             } else {
-                console.log('🎉🎉🎉 Your Firebase project is ready! 🎉🎉🎉');
+                console.log('\x1b[32m%s\x1b[0m', 'Your Firebase project is ready!');
             }
         }
 
@@ -224,6 +224,7 @@ const jms = {
             to: data.projectId,
             ignore: [
                 `${process.cwd()}/${githubProject}/index.js`,
+                `${process.cwd()}/${githubProject}/**/env-config.ts`,
                 `${process.cwd()}/${githubProject}/**/node_modules/**/*`,
             ],
         });
