@@ -9,7 +9,8 @@
     "jpc": "./index.js"
   },
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "semantic-release": "semantic-release"
   },
   "author": {
     "name": "Jaspero Ltd",
@@ -24,5 +25,12 @@
     "inquirer": "^7.3.3",
     "open": "^7.4.1",
     "replace-in-file": "^6.2.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Jaspero/cli.git"
+  },
+  "devDependencies": {
+    "semantic-release": "17.3.9"
   }
 }
