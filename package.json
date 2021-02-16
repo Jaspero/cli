@@ -1,0 +1,28 @@
+{
+  "name": "@jaspero/cli",
+  "version": "0.0.0-development",
+  "description": "Command line tool for Jaspero products",
+  "main": "index.js",
+  "bin": {
+    "jaspero": "./index.js",
+    "jaspero-cli": "./index.js",
+    "jpc": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": {
+    "name": "Jaspero Ltd",
+    "email": "info@jaspero.co"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "commander": "^7.1.0",
+    "inquirer": "^7.3.3",
+    "open": "^7.4.1",
+    "replace-in-file": "^6.2.0"
+  }
+}
