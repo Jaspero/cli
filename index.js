@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 
-const { execSync } = require('child_process');
+const {execSync} = require('child_process');
 const replaceInFile = require('replace-in-file');
-const { Command } = require('commander');
+const {Command} = require('commander');
 const inquirer = require('inquirer');
+const adm = require('adm-zip');
 const open = require('open');
 const path = require('path');
 const fs = require('fs');
@@ -11,7 +12,7 @@ const fs = require('fs');
 const program = new Command();
 
 function pressEnter() {
-    return inquirer.prompt({ name: 'enter', message: 'Press Enter to continue...', prefix: '' });
+    return inquirer.prompt({name: 'enter', message: 'Press Enter to continue...', prefix: ''});
 }
 
 function errorMessage(message) {
@@ -21,7 +22,7 @@ function errorMessage(message) {
 function execute(opts) {
     return new Promise(async (resolve) => {
         const command = opts.command;
-        const options = opts.options || { stdio: ['pipe', 'pipe', 'ignore'] };
+        const options = opts.options || {stdio: ['pipe', 'pipe', 'ignore']};
 
         try {
             const stdout = await execSync(command, options);
@@ -39,6 +40,71 @@ function execute(opts) {
     });
 }
 
+function downloadFile(link, file) {
+    return execute({command: `curl -L ${link} > ${file}`});
+}
+
+const modular = {
+    init: async () => {
+        if (!fs.existsSync(path.resolve(process.cwd(), 'angular.json'))) {
+            return errorMessage('The init command requires to be run in an Angular project, but a project definition could not be found.');
+        }
+
+        let srcPath = '';
+
+        const single = fs.existsSync(path.resolve(process.cwd(), 'src', 'index.html'));
+        if (!single) {
+            const projects = [];
+            const lsExec = await execute({command: `cd projects && ls`});
+            if (!lsExec.success) {
+                return errorMessage(`Failed to find 'projects' directory.`);
+            } else {
+                projects.push(...lsExec.message.split('\n').filter(item => item));
+            }
+
+            if (projects.length > 1) {
+                const data = await inquirer.prompt([
+                    {
+                        name: 'project',
+                        message: 'For which project would you like to initialize Modular?',
+                        type: 'list',
+                        loop: false,
+                        choices: projects
+                    },
+                ]);
+
+                projects.splice(0, projects.length, data.project);
+            }
+
+            srcPath = path.resolve(process.cwd(), 'projects', projects[0], 'src');
+        } else {
+            srcPath = path.resolve(process.cwd(), 'src');
+        }
+
+        await downloadFile('http://github.com/Jaspero/modular-style/archive/master.zip', 'modular.zip');
+        const zip = new adm('./modular.zip');
+
+        zip.getEntries().forEach(entry => {
+            if (entry.entryName === 'modular-style-master/scss/') {
+                zip.extractEntryTo(entry, srcPath, true, true, 'scss');
+            }
+        });
+
+        fs.renameSync(path.resolve(srcPath, 'modular-style-master', 'scss'), path.resolve(srcPath, 'scss'));
+
+        fs.rmdirSync(path.resolve(srcPath, 'modular-style-master'), {recursive: true});
+        fs.unlinkSync('modular.zip');
+
+        const styleFiles = ['styles.scss', 'global.scss'];
+
+        const mainStyle = styleFiles.find(file => {
+           return fs.existsSync(path.resolve(srcPath, file));
+        });
+
+        fs.appendFileSync(path.resolve(srcPath, mainStyle), '@import "scss/modular";\n');
+    }
+};
+
 const jms = {
     token: '',
     setup: async (route = process.cwd()) => {
@@ -48,10 +114,10 @@ const jms = {
             return errorMessage('The setup command requires to be run in an JMS project, but a project setup could not be found.');
         }
 
-        return execute({ command: `cd ${setupPath} && npm i && ts-node setup.ts`, options: {} });
+        return execute({command: `cd ${setupPath} && npm i && ts-node setup.ts`, options: {}});
     },
     init: async () => {
-        const tokenExecute = await execute({ command: 'firebase login:ci --interactive' });
+        const tokenExecute = await execute({command: 'firebase login:ci --interactive'});
         if (!tokenExecute.success) {
             return errorMessage(tokenExecute.message);
         } else {
@@ -61,7 +127,7 @@ const jms = {
         }
 
         const projects = [];
-        const projectsExecute = await execute({ command: `firebase projects:list --token ${jms.token}` });
+        const projectsExecute = await execute({command: `firebase projects:list --token ${jms.token}`});
         if (!projectsExecute.success) {
             return errorMessage(projectsExecute.message);
         } else {
@@ -174,7 +240,7 @@ const jms = {
         ]);
 
         if (data.newFirebase) {
-            const createProjectExecute = await execute({ command: `firebase projects:create ${data.projectId} -n "${data.projectName}" --token ${jms.token}` });
+            const createProjectExecute = await execute({command: `firebase projects:create ${data.projectId} -n "${data.projectName}" --token ${jms.token}`});
             if (!createProjectExecute.success) {
                 return errorMessage(createProjectExecute.message);
             } else {
@@ -186,7 +252,7 @@ const jms = {
 
         const [githubUsername, githubProject] = data.github.split('/');
 
-        const quickRemoteExecute = await execute({ command: `npx @jaspero/quick-remote r Jaspero/jms -p ${data.github} -f ${flavor}` });
+        const quickRemoteExecute = await execute({command: `npx @jaspero/quick-remote r Jaspero/jms -p ${data.github} -f ${flavor}`});
 
         if (!quickRemoteExecute.success) {
             if (fs.existsSync(path.resolve(process.cwd(), githubProject))) {
@@ -196,7 +262,7 @@ const jms = {
             return errorMessage(`Error: Failed to fetch '${data.github}' repository.\nCheck for misspellings and access permission to this repository.`);
         }
 
-        await execute({ command: `cd ${path.resolve(process.cwd(), githubProject)}` });
+        await execute({command: `cd ${path.resolve(process.cwd(), githubProject)}`});
 
         setTimeout(() => {
             open(`https://console.firebase.google.com/project/${data.projectId}/settings/serviceaccounts/adminsdk`);
@@ -242,24 +308,24 @@ const jms = {
         });
 
         let config;
-        const configExecute = await execute({ command: `firebase apps:sdkconfig Web --project ${data.projectId} --token ${jms.token}` });
+        const configExecute = await execute({command: `firebase apps:sdkconfig Web --project ${data.projectId} --token ${jms.token}`});
         if (!configExecute.success) {
             if (configExecute.message.includes('has multiple apps, must specify an app id.')) {
 
 
-                const createAppExecute = await execute({ command: `firebase apps:create Web ${githubProject} --project ${data.projectId} --token ${jms.token}` });
+                const createAppExecute = await execute({command: `firebase apps:create Web ${githubProject} --project ${data.projectId} --token ${jms.token}`});
                 if (!createAppExecute.success) {
                     return errorMessage(createAppExecute.message);
                 } else {
                     const createApp = createAppExecute.message.split('\n').filter(item => item);
                     const configCommand = createApp[createApp.length - 1].trim();
 
-                    const sdkConfig = execSync(`${configCommand} --project ${projectId} --token ${jms.token}`, { stdio: ['pipe', 'pipe', 'ignore'] }).toString();
+                    const sdkConfig = execSync(`${configCommand} --project ${projectId} --token ${jms.token}`, {stdio: ['pipe', 'pipe', 'ignore']}).toString();
                     config = sdkConfig.substring(sdkConfig.indexOf('{'), sdkConfig.indexOf('}') + 1);
                 }
             }
         } else {
-            const sdkConfig = execSync(`firebase apps:sdkconfig Web --project ${data.projectId} --token ${jms.token}`, { stdio: ['pipe', 'pipe', 'ignore'] }).toString();
+            const sdkConfig = execSync(`firebase apps:sdkconfig Web --project ${data.projectId} --token ${jms.token}`, {stdio: ['pipe', 'pipe', 'ignore']}).toString();
             config = sdkConfig.substring(sdkConfig.indexOf('{'), sdkConfig.indexOf('}') + 1);
         }
 
@@ -294,8 +360,15 @@ const jms = {
 const commands = {};
 commands.jms = program.command('jms');
 commands.jms.description('Commands for managing JMS Project');
+commands.jms.helpOption(false);
 commands.jms.addCommand(new Command('init').description('Creates a new workspace and an initial JMS Application').action(jms.init));
 commands.jms.addCommand(new Command('setup').description('Runs JMS setup script').action(jms.setup));
 
+commands.modular = program.command('modular');
+commands.modular.description('Commands for Jaspero Modular Style');
+commands.modular.helpOption(false);
+commands.modular.addCommand(new Command('init').description('Initializes Modular in current Angular Project.').action(modular.init));
+
 program.name('jaspero');
+program.helpOption(false);
 program.parse(process.argv);

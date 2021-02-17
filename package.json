@@ -21,6 +21,7 @@
     "access": "public"
   },
   "dependencies": {
+    "adm-zip": "0.5.2",
     "commander": "7.1.0",
     "inquirer": "7.3.3",
     "open": "7.4.1",
