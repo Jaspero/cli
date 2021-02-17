@@ -15,6 +15,10 @@ function pressEnter() {
     return inquirer.prompt({name: 'enter', message: 'Press Enter to continue...', prefix: ''});
 }
 
+function successMessage(message) {
+    return console.log('\x1b[32m%s\x1b[0m', message);
+}
+
 function errorMessage(message) {
     return console.log('\x1b[31m%s\x1b[0m', message);
 }
@@ -102,6 +106,8 @@ const modular = {
         });
 
         fs.appendFileSync(path.resolve(srcPath, mainStyle), '@import "scss/modular";\n');
+
+        return successMessage('Successfully initialized Modular!');
     }
 };
 
@@ -353,7 +359,7 @@ const jms = {
             return jms.setup(path.resolve(process.cwd(), githubProject));
         }
 
-        console.log('\x1b[32m%s\x1b[0m', 'Successfully created JMS project!');
+        return successMessage('Successfully created JMS project!');
     }
 };
 
