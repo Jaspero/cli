@@ -23,6 +23,10 @@ function errorMessage(message) {
     return console.log('\x1b[31m%s\x1b[0m', message);
 }
 
+function infoMessage(message) {
+    return console.log('\x1b[36m%s\x1b[0m', message);
+}
+
 function execute(opts) {
     return new Promise(async (resolve) => {
         const command = opts.command;
@@ -105,7 +109,11 @@ const modular = {
            return fs.existsSync(path.resolve(srcPath, file));
         });
 
-        fs.appendFileSync(path.resolve(srcPath, mainStyle), '@import "scss/modular";\n');
+        if (!mainStyle) {
+            infoMessage('\nMain style file could not be found! Please import _modular.scss manually.\n')
+        } else {
+            fs.appendFileSync(path.resolve(srcPath, mainStyle), '@import "scss/modular";\n');
+        }
 
         return successMessage('Successfully initialized Modular!');
     }
@@ -208,10 +216,10 @@ const jms = {
                 message: 'Firebase Cloud Region:',
                 choices: [
                     {
-                        value: 'us-central', name: 'nam5 (us-central)'
+                        value: 'us-central1', name: 'nam5 (us-central)'
                     },
                     {
-                        value: 'europe-west', name: 'eur3 (europe-west)'
+                        value: 'europe-west1', name: 'eur3 (europe-west)'
                     },
                     'asia-northeast3',
                     'asia-northeast2',
@@ -250,7 +258,7 @@ const jms = {
             if (!createProjectExecute.success) {
                 return errorMessage(createProjectExecute.message);
             } else {
-                console.log('\x1b[32m%s\x1b[0m', 'Your Firebase project is ready!');
+                successMessage('Your Firebase project is ready!');
             }
         }
 
@@ -274,7 +282,7 @@ const jms = {
             open(`https://console.firebase.google.com/project/${data.projectId}/settings/serviceaccounts/adminsdk`);
         }, 1500);
 
-        console.log('\x1b[36m%s\x1b[0m', `\nGenerate and download a new private key from Project settings.\nMove file to '${githubProject}/setup/serviceAccountKey.json'.\n`);
+        infoMessage(`\nGenerate and download a new private key from Project settings.\nMove file to '${githubProject}/setup/serviceAccountKey.json'.\n`);
 
         let serviceAccountKey = false;
         while (!serviceAccountKey) {
@@ -282,7 +290,7 @@ const jms = {
 
             serviceAccountKey = fs.existsSync(`${path.resolve(process.cwd(), githubProject, 'setup', 'serviceAccountKey.json')}`);
             if (!serviceAccountKey) {
-                console.log('\x1b[31m%s\x1b[0m', `\nFile 'serviceAccountKey.json' not found. Please check '${githubProject}/setup' directory.\n`);
+                errorMessage(`\nFile 'serviceAccountKey.json' not found. Please check '${githubProject}/setup' directory.\n`);
             }
         }
 
@@ -345,7 +353,7 @@ const jms = {
             open(`https://console.firebase.google.com/project/${data.projectId}/firestore`);
         }, 1500);
 
-        console.log('\x1b[36m%s\x1b[0m', '\nPlease Enable Firestore for this project.\n');
+        infoMessage('\nPlease Enable Firestore for this project.\n');
         await pressEnter();
 
 
