@@ -345,8 +345,8 @@ const jms = {
 
         replaceInFile.sync({
             files: `${process.cwd()}/${githubProject}/**/env-config.ts`,
-            from: `{\n    apiKey: "AIzaSyBpOVW-c-ExPTUHRAXRO8-yTUVPq0pKS1g",\n    authDomain: "jaspero-jms.firebaseapp.com",\n    databaseURL: "https://jaspero-jms.firebaseio.com",\n    projectId: "jaspero-jms",\n    storageBucket: "jaspero-jms.appspot.com",\n    messagingSenderId: "82190793734",\n    appId: "1:82190793734:web:e6abf3c3a3bbb744"\n  }`,
-            to: config
+            from: /firebase: {(.|\n)* }/,
+            to: `firebase: ${config.replace(/(^)(?!^{$)/gm, '  ')}`
         });
 
         setTimeout(() => {
