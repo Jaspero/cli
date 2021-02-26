@@ -266,7 +266,7 @@ const jms = {
 
         const [githubUsername, githubProject] = data.github.split('/');
 
-        const quickRemoteExecute = await execute({command: `npx @jaspero/quick-remote r Jaspero/jms -p ${data.github} -f ${flavor}`});
+        const quickRemoteExecute = await execute({command: `npx @jaspero/quick-remote r Jaspero/jms -p ${data.github} -f ${flavor} -c HTTPS`});
 
         if (!quickRemoteExecute.success) {
             if (fs.existsSync(path.resolve(process.cwd(), githubProject))) {
