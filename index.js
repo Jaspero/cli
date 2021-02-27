@@ -247,6 +247,16 @@ const jms = {
                 default: 'Jaspero/JMS',
             },
             {
+                name: 'protocol',
+                message: 'GitHub Protocol:',
+                type: 'list',
+                loop: false,
+                choices: [
+                    'HTTPS',
+                    'SSH'
+                ]
+            },
+            {
                 name: 'multiple',
                 message: 'Setup JMS for multiple projects?',
                 type: 'confirm'
@@ -266,7 +276,7 @@ const jms = {
 
         const [githubUsername, githubProject] = data.github.split('/');
 
-        const quickRemoteExecute = await execute({command: `npx @jaspero/quick-remote r Jaspero/jms -p ${data.github} -f ${flavor} -c HTTPS`});
+        const quickRemoteExecute = await execute({command: `npx @jaspero/quick-remote r Jaspero/jms -p ${data.github} -f ${flavor} -c ${data.protocol}`});
 
         if (!quickRemoteExecute.success) {
             if (fs.existsSync(path.resolve(process.cwd(), githubProject))) {
