@@ -23,6 +23,7 @@
   "dependencies": {
     "adm-zip": "0.5.2",
     "commander": "7.1.0",
+    "firebase-tools": "9.5.0",
     "inquirer": "7.3.3",
     "open": "7.4.1",
     "replace-in-file": "6.2.0"
