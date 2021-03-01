@@ -44,18 +44,20 @@ function execute(opts, info) {
   });
 }
 
-async function checkForUpdates() {
-  const newVersion = await execute({command: `npm show @jaspero/cli version`});
+async function checkForUpdates(verbose = true) {
+  const newVersion = await execute({command: `npm show ${jsonPackage.name} version`});
 
   if (!newVersion.success) {
-    return;
+    return jsonPackage.version;
   }
 
   const VERSION = newVersion.message.replace('\n', '');
 
-  if (VERSION !== jsonPackage.version) {
+  if (VERSION !== jsonPackage.version && verbose) {
     successMessage(`Update for CLI is available! (${jsonPackage.version} -> ${VERSION})\n`);
   }
+
+  return VERSION;
 }
 
 module.exports = {

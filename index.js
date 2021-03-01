@@ -6,6 +6,7 @@ const program = new Command();
 const jms = require('./src/commands/jms');
 const modular = require('./src/commands/modular');
 const config = require('./src/commands/config');
+const update = require('./src/commands/update');
 const jsonPackage = require('./package.json');
 const {checkForUpdates} = require("./src/utils");
 
@@ -29,6 +30,11 @@ async function init() {
     commands.config.description('Commands for CLI config');
     commands.config.helpOption(false);
     commands.config.addCommand(new Command('init').description('Resets any configurations.').action(config.clear));
+
+    commands.update = program.command('update');
+    commands.update.description('Update CLI package');
+    commands.update.helpOption(false);
+    commands.update.action(update.update);
 
     program.name('jaspero');
     program.helpOption(false);
