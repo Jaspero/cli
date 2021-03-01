@@ -1,4 +1,5 @@
 const {execSync} = require('child_process');
+const jsonPackage = require('../package.json');
 const inquirer = require('inquirer');
 
 function successMessage(message) {
@@ -43,10 +44,25 @@ function execute(opts, info) {
   });
 }
 
+async function checkForUpdates() {
+  const newVersion = await execute({command: `npm show @jaspero/cli version`});
+
+  if (!newVersion.success) {
+    return;
+  }
+
+  const VERSION = newVersion.message.replace('\n', '');
+
+  if (VERSION !== jsonPackage.version) {
+    successMessage(`Update for CLI is available! (${jsonPackage.version} -> ${VERSION})\n`);
+  }
+}
+
 module.exports = {
   successMessage,
   errorMessage,
   infoMessage,
   execute,
-  pressEnter
+  pressEnter,
+  checkForUpdates
 };
