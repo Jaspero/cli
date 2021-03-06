@@ -169,7 +169,7 @@ async function init() {
 
   if (data.newFirebase) {
 
-    infoMessage(`Creating new firebase project ${data.projectName}.`);
+    infoMessage(`Creating new firebase project: ${data.projectName}.`);
 
     const createProjectExecute = await execute({command: `firebase projects:create ${data.projectId} -n "${data.projectName}" --token ${token}`});
     if (!createProjectExecute.success) {
@@ -214,7 +214,7 @@ async function init() {
     }
   }
 
-  infoMessage(`Replacing jms references in project configuration.`);
+  infoMessage(`Replacing JMS references in the project configuration.`);
 
   replaceInFile.sync({
     files: [
@@ -257,7 +257,7 @@ async function init() {
         const createApp = createAppExecute.message.split('\n').filter(item => item);
         const configCommand = createApp[createApp.length - 1].trim();
 
-        const sdkConfig = execSync(`${configCommand} --project ${projectId} --token ${token}`, {stdio: ['pipe', 'pipe', 'ignore']}).toString();
+        const sdkConfig = execSync(`${configCommand} --project ${data.projectId} --token ${token}`, {stdio: ['pipe', 'pipe', 'ignore']}).toString();
         config = sdkConfig.substring(sdkConfig.indexOf('{'), sdkConfig.indexOf('}') + 1);
       }
     }

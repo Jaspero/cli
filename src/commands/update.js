@@ -2,7 +2,6 @@ const inquirer = require('inquirer');
 const jsonPackage = require('../../package.json');
 const {execute, checkForUpdates, successMessage, errorMessage, infoMessage} = require('../utils');
 
-
 async function update() {
 
     const VERSION = await checkForUpdates(false);
