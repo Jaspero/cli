@@ -15,15 +15,26 @@ const {
 
 let token;
 
+async function deployFunctions(route = process.cwd(), token, projectId) {
+    route = JSON.stringify(route || {}) === '{}' ? process.cwd() : route;
+    const path = resolve(route, 'functions');
+
+    if (!existsSync(path)) {
+        return errorMessage(`Function deployment needs to run in an JMS project, but the functions folder couldn't be found.`);
+    }
+
+    return execute({command: `cd ${path} && npm ci && firebase deploy --only functions --project ${projectId} --token ${token}`, options: {}});
+}
+
 async function setup(route = process.cwd()) {
     route = JSON.stringify(route || {}) === '{}' ? process.cwd() : route;
     const setupPath = resolve(route, 'setup');
 
     if (!existsSync(setupPath)) {
-        return errorMessage('The setup command requires to be run in an JMS project, but a project setup could not be found.');
+        return errorMessage(`The setup command needs to be run in an JMS project, but a project setup couldn't be found.`);
     }
 
-    return execute({command: `cd ${setupPath} && npm i && ts-node setup.ts`, options: {}});
+    return execute({command: `cd ${setupPath} && npm ci && ts-node setup.ts`, options: {}});
 }
 
 async function init() {
@@ -317,7 +328,17 @@ async function init() {
     });
 
     if (st.run) {
-        return setup(resolve(process.cwd(), githubProject));
+        await setup(resolve(process.cwd(), githubProject));
+    }
+
+    const df = await inquirer.prompt({
+        name: 'run',
+        message: 'Deploy Functions?',
+        type: 'confirm'
+    });
+
+    if (df.run) {
+        await deployFunctions(resolve(process.cwd(), githubProject), token, data.projectId)
     }
 
     return successMessage('Successfully created JMS project!');
