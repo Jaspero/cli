@@ -26,6 +26,28 @@ async function deployFunctions(route = process.cwd(), token, projectId) {
     return execute({command: `cd ${path} && npm ci && firebase deploy --only functions --project ${projectId} --token ${token}`, options: {}});
 }
 
+async function deployFirestoreRules(route = process.cwd(), token, projectId) {
+    route = JSON.stringify(route || {}) === '{}' ? process.cwd() : route;
+    const path = resolve(route);
+
+    if (!existsSync(path)) {
+        return errorMessage(`Rules deployment needs to run in an JMS project.`);
+    }
+
+    return execute({command: `cd ${path} && firebase deploy --only firestore:rules --project ${projectId} --token ${token}`, options: {}});
+}
+
+async function deployStorageRules(route = process.cwd(), token, projectId) {
+    route = JSON.stringify(route || {}) === '{}' ? process.cwd() : route;
+    const path = resolve(route);
+
+    if (!existsSync(path)) {
+        return errorMessage(`Storage rules deployment needs to run in an JMS project.`);
+    }
+
+    return execute({command: `cd ${path} && firebase deploy --only storage --project ${projectId} --token ${token}`, options: {}});
+}
+
 async function setup(route = process.cwd()) {
     route = JSON.stringify(route || {}) === '{}' ? process.cwd() : route;
     const setupPath = resolve(route, 'setup');
@@ -327,15 +349,31 @@ async function init() {
         await setup(resolve(process.cwd(), githubProject));
     }
 
-    const df = await inquirer.prompt({
-        name: 'run',
-        message: 'Deploy Functions?',
-        type: 'confirm'
-    });
-
-    if (df.run) {
-        await deployFunctions(resolve(process.cwd(), githubProject), token, data.projectId)
-    }
+    [
+        {
+            message: 'Deploy Firestore rules?',
+            method: deployFirestoreRules
+        },
+        {
+            message: 'Deploy Storage rules?',
+            method: deployStorageRules
+        },
+        {
+            message: 'Deploy Functions?',
+            method: deployFunctions
+        }
+    ]
+        .forEach(p => {
+            const prom = await inquirer.prompt({
+                name: 'run',
+                message: p.message,
+                type: 'confirm'
+            });
+        
+            if (prom.run) {
+                await p.method(resolve(process.cwd(), githubProject), token, data.projectId)
+            }
+        });
 
     return successMessage('Successfully created JMS project!');
 }
