@@ -178,16 +178,12 @@ async function init() {
             loop: false,
             choices: [
                 {
-                    name: 'default (master)',
+                    name: 'default (main)',
                     value: ''
                 },
                 {
-                    name: 'multiple projects (mw)',
-                    value: '-b flavor/mw'
-                },
-                {
-                    name: 'blog (mw-blog)',
-                    value: '-b flavor/mw-blog'
+                    name: 'blog',
+                    value: '-b flavor/blog'
                 },
             ]
         }
