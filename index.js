@@ -21,6 +21,7 @@ async function init() {
     commands.jms.addCommand(new Command('init').description('Creates a new workspace and an initial JMS Application').action(jms.init));
     commands.jms.addCommand(new Command('setup').description('Runs JMS setup script').action(jms.setup));
     commands.jms.addCommand(new Command('login').description('Used for logging in to different accounts').action(jms.login));
+    commands.jms.addCommand(new Command('module').description('Create a new module').action(jms.module));
 
     commands.modular = program.command('modular');
     commands.modular.description('Commands for Jaspero Modular Style');

@@ -1,5 +1,5 @@
 const {resolve} = require('path');
-const {existsSync} = require('fs');
+const {existsSync, writeFileSync} = require('fs');
 const {execSync} = require('child_process');
 const inquirer = require('inquirer');
 const replaceInFile = require('replace-in-file');
@@ -383,8 +383,49 @@ async function init() {
     return successMessage('Successfully created JMS project!');
 }
 
+async function module(route = process.cwd()) {
+    const moduleSimple = {
+        id: '',
+        name: '',
+        layout: {
+            
+        },
+        schema: {
+            properties: {
+                id: {type: 'string'}
+            }
+        },
+        definitions: {
+            id: {label: 'GENERAL.ID', disableOn: 'edit'}
+        }
+    };
+
+    const data = await inquirer.prompt([
+        {
+            name: 'name',
+            message: 'Module Name:',
+        },
+        {
+            name: 'id',
+            message: 'Module ID:'
+        }
+    ]);
+
+    moduleSimple.name = data.name;
+    moduleSimple.id = data.id;
+
+    const path = resolve(route, `setup/modules/${id}.module.ts`);
+
+    writeFileSync(path, [
+        `import {Module} from './shared/module.type';`,
+        '',
+        `export const ${id.toUpperCase()}_MODULE: Module = ${JSON.stringify(moduleSimple, null, 2)}`
+    ].join('\n'));
+}
+
 module.exports = {
     setup,
     init,
-    login
+    login,
+    module
 };
