@@ -23,7 +23,7 @@ async function deployFunctions(route = process.cwd(), token, projectId) {
         return errorMessage(`Function deployment needs to run in an JMS project, but the functions folder couldn't be found.`);
     }
 
-    return execute({command: `cd ${path} && npm ci && firebase deploy --only functions --project ${projectId} --token ${token}`, options: {}});
+    return execute({command: `cd ${path} && npm ci && npm run build && firebase deploy --only functions --project ${projectId} --token ${token}`, options: {}});
 }
 
 async function deployFirestoreRules(route = process.cwd(), token, projectId) {
