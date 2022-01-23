@@ -349,7 +349,7 @@ async function init() {
         await setup(resolve(process.cwd(), githubProject));
     }
 
-    [
+    const deploys = [
         {
             message: 'Deploy Firestore rules?',
             method: deployFirestoreRules
@@ -362,18 +362,19 @@ async function init() {
             message: 'Deploy Functions?',
             method: deployFunctions
         }
-    ]
-        .forEach(p => {
-            const prom = await inquirer.prompt({
-                name: 'run',
-                message: p.message,
-                type: 'confirm'
-            });
-        
-            if (prom.run) {
-                await p.method(resolve(process.cwd(), githubProject), token, data.projectId)
-            }
+    ];
+
+    for (const p of deploys) {
+        const prom = await inquirer.prompt({
+            name: 'run',
+            message: p.message,
+            type: 'confirm'
         });
+    
+        if (prom.run) {
+            await p.method(resolve(process.cwd(), githubProject), token, data.projectId)
+        }
+    }
 
     return successMessage('Successfully created JMS project!');
 }
