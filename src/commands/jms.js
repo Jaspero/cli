@@ -59,22 +59,26 @@ async function setup(route = process.cwd()) {
     return execute({command: `cd ${setupPath} && npm ci && ts-node setup.ts`, options: {}});
 }
 
+async function login() {
+    const tokenExecute = await execute({command: 'firebase login:ci --interactive'});
+
+    if (!tokenExecute.success) {
+        return errorMessage(tokenExecute.message);
+    } else {
+        const lines = tokenExecute.message.split('\n').filter(item => item);
+        const successLine = lines.findIndex(line => line.includes('Success! Use this token to login on a CI server:'));
+        token = lines[successLine + 1].slice(4, -5);
+
+        conf.set({token});
+    }
+}
+
 async function init() {
 
     token = conf.get('token');
 
     if (!token) {
-        const tokenExecute = await execute({command: 'firebase login:ci --interactive'});
-
-        if (!tokenExecute.success) {
-            return errorMessage(tokenExecute.message);
-        } else {
-            const lines = tokenExecute.message.split('\n').filter(item => item);
-            const successLine = lines.findIndex(line => line.includes('Success! Use this token to login on a CI server:'));
-            token = lines[successLine + 1].slice(4, -5);
-
-            conf.set({token});
-        }
+        await login();
     }
 
     const projects = [];
@@ -381,5 +385,6 @@ async function init() {
 
 module.exports = {
     setup,
-    init
+    init,
+    login
 };
