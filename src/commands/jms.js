@@ -56,7 +56,7 @@ async function setup(route = process.cwd()) {
         return errorMessage(`The setup command needs to be run in an JMS project, but a project setup couldn't be found.`);
     }
 
-    return execute({command: `cd ${setupPath} && npm ci && ts-node setup.ts`, options: {}});
+    return execute({command: `cd ${setupPath} && npm ci && ts-node setup.ts p`, options: {}});
 }
 
 async function login() {
