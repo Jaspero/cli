@@ -383,7 +383,7 @@ async function init() {
     return successMessage('Successfully created JMS project!');
 }
 
-async function module(route = process.cwd()) {
+async function createModule(route = process.cwd()) {
     const moduleSimple = {
         id: '',
         name: '',
@@ -427,5 +427,5 @@ module.exports = {
     setup,
     init,
     login,
-    module
+    createModule
 };
