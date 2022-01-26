@@ -205,7 +205,7 @@ async function init() {
             choices: [
                 {
                     name: 'default (main)',
-                    value: ''
+                    value: '-b main'
                 },
                 {
                     name: 'blog',
