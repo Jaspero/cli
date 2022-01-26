@@ -384,21 +384,47 @@ async function init() {
 }
 
 async function createModule(route = process.cwd()) {
-    const moduleSimple = {
-        id: '',
-        name: '',
-        layout: {
-            
-        },
-        schema: {
-            properties: {
-                id: {type: 'string'}
+    const modules = {
+        basic: {
+            id: '',
+            name: '',
+            layout: {
+                
+            },
+            schema: {
+                properties: {
+                    id: {type: 'string'}
+                }
+            },
+            definitions: {
+                id: {label: 'GENERAL.ID', disableOn: 'edit'}
             }
         },
-        definitions: {
-            id: {label: 'GENERAL.ID', disableOn: 'edit'}
+        advanced: {
+            id: '',
+            name: '',
+            layout: {
+                
+            },
+            schema: {
+                properties: {
+                    id: {type: 'string'}
+                }
+            },
+            definitions: {
+                id: {label: 'GENERAL.ID', disableOn: 'edit'}
+            }
         }
     };
+
+    /**
+     * Things we replace in string. This is because
+     * some imports aren't available here but will be
+     * in JMS.
+     */
+    const replaces = [];
+    const propertySpreads = [];
+    const definitionSpreads = [];
 
     const data = await inquirer.prompt([
         {
@@ -408,18 +434,75 @@ async function createModule(route = process.cwd()) {
         {
             name: 'id',
             message: 'Module ID:'
+        },
+        {
+            name: 'preset',
+            message: 'Select Preset',
+            type: 'list',
+            choices: [
+                'basic',
+                'advanced'
+            ],
+            default: 'basic'
+        },
+        {
+            name: 'timestamp',
+            message: 'Add timestamp?',
+            type: 'confirm',
+            default: true,
         }
     ]);
 
-    moduleSimple.name = data.name;
-    moduleSimple.id = data.id;
+    const moduleToUse = modules[data.preset];
+
+    moduleToUse.name = data.name;
+    moduleToUse.id = data.id;
+
+    if (data.timestamp) {
+        replaces.push('CREATED_ON.sort', 'CREATED_ON.column()');
+        propertySpreads.push('CREATED_ON.property');
+        definitionSpreads.push('CREATED_ON.definition()');
+
+        moduleToUse.layout.sort = 'CREATED_ON.sort';
+
+        /**
+         * Will be replaced with spreads
+         */
+        moduleToUse.schema.properties['CREATED_ON.property'] = true;
+        moduleToUse.definitions['CREATED_ON.definition()'] = true;
+
+        if (!moduleToUse.layout.table) {
+            moduleToUse.layout.table = {};
+        }
+
+        if (!moduleToUse.layout.tableColumns) {
+            moduleToUse.layout.tableColumns = [];
+        }
+
+        moduleToUse.layout.table.tableColumns.unshift('CREATED_ON.column()');
+    }
 
     const path = resolve(route, `setup/modules/${id}.module.ts`);
 
+    let final = `export const ${id.toUpperCase()}_MODULE: Module = ${JSON.stringify(moduleSimple, null, 2)}`;
+
+    replaces.forEach(replace => {
+        final.replace(`'${replace}'`, replace);
+    });
+
+    propertySpreads.forEach(replace => {
+        final.replace(`"${replace}": true`, `...${replace}`)
+    });
+
+    definitionSpreads.forEach(replace => {
+        final.replace(`"${replace}": true`, `...${replace}`)
+    });
+
     writeFileSync(path, [
         `import {Module} from './shared/module.type';`,
+        ...data.timestamp ? [`import {CREATED_ON} from './shared/created-on';`] : [],
         '',
-        `export const ${id.toUpperCase()}_MODULE: Module = ${JSON.stringify(moduleSimple, null, 2)}`
+        final
     ].join('\n'));
 }
 
