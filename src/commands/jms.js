@@ -489,7 +489,7 @@ async function createModule(route = process.cwd()) {
             const pointer = '/' + key;
 
             moduleToUse.schema.properties[key] = {type};
-            moduleToUse.table.tableColumns.push({key: pointer, label});
+            moduleToUse.layout.table.tableColumns.push({key: pointer, label});
             moduleToUse.definitions[key] = {label};
         })
     }
