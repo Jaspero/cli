@@ -494,9 +494,9 @@ async function createModule(route = process.cwd()) {
         })
     }
 
-    const path = resolve(route, `setup/modules/${id}.module.ts`);
+    const path = resolve(route, `setup/modules/${data.id}.module.ts`);
 
-    let final = `export const ${id.toUpperCase()}_MODULE: Module = ${JSON.stringify(moduleSimple, null, 2)}`;
+    let final = `export const ${data.id.toUpperCase()}_MODULE: Module = ${JSON.stringify(moduleSimple, null, 2)}`;
 
     replaces.forEach(replace => {
         final.replace(`'${replace}'`, replace);
