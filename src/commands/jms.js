@@ -4,6 +4,7 @@ const {execSync} = require('child_process');
 const inquirer = require('inquirer');
 const replaceInFile = require('replace-in-file');
 const open = require('open');
+const {capitalize} = require('@jaspero/utils');
 const conf = require('../config');
 const {
     execute,
@@ -389,7 +390,9 @@ async function createModule(route = process.cwd()) {
             id: '',
             name: '',
             layout: {
-                
+                table: {
+                    tableColumns: []
+                }
             },
             schema: {
                 properties: {
@@ -404,7 +407,9 @@ async function createModule(route = process.cwd()) {
             id: '',
             name: '',
             layout: {
-                
+                table: {
+                    tableColumns: []
+                }
             },
             schema: {
                 properties: {
@@ -450,6 +455,10 @@ async function createModule(route = process.cwd()) {
             message: 'Add timestamp?',
             type: 'confirm',
             default: true,
+        },
+        {
+            name: 'properties',
+            message: 'Added Properties? (e.g. "firstName,lastName,age|number")',
         }
     ]);
 
@@ -470,16 +479,19 @@ async function createModule(route = process.cwd()) {
          */
         moduleToUse.schema.properties['CREATED_ON.property'] = true;
         moduleToUse.definitions['CREATED_ON.definition()'] = true;
-
-        if (!moduleToUse.layout.table) {
-            moduleToUse.layout.table = {};
-        }
-
-        if (!moduleToUse.layout.tableColumns) {
-            moduleToUse.layout.tableColumns = [];
-        }
-
         moduleToUse.layout.table.tableColumns.unshift('CREATED_ON.column()');
+    }
+
+    if (data.properties) {
+        data.properties.split(',').forEach(prop => {
+            const [key, type = 'string'] = prop.split('|');
+            const label = capitalize(key);
+            const pointer = '/' + key;
+
+            moduleToUse.schema.properties[key] = {type};
+            moduleToUse.table.tableColumns.push({key: pointer, label});
+            moduleToUse.definitions[key] = {label};
+        })
     }
 
     const path = resolve(route, `setup/modules/${id}.module.ts`);
