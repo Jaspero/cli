@@ -1,6 +1,7 @@
 const {resolve} = require('path');
 const {existsSync, writeFileSync} = require('fs');
 const {execSync} = require('child_process');
+const {inspect} = require('util');
 const inquirer = require('inquirer');
 const replaceInFile = require('replace-in-file');
 const open = require('open');
@@ -442,7 +443,7 @@ async function createModule() {
         },
         {
             name: 'preset',
-            message: 'Select Preset',
+            message: 'Select Preset:',
             type: 'list',
             choices: [
                 'basic',
@@ -452,7 +453,7 @@ async function createModule() {
         },
         {
             name: 'timestamp',
-            message: 'Add timestamp?',
+            message: 'Add Timestamp?',
             type: 'confirm',
             default: true,
         },
@@ -496,7 +497,7 @@ async function createModule() {
 
     const path = resolve(process.cwd(), `setup/modules/${data.id}.module.ts`);
 
-    let final = `export const ${data.id.toUpperCase()}_MODULE: Module = ${JSON.stringify(moduleToUse, null, 2)}`;
+    let final = `export const ${data.id.toUpperCase()}_MODULE: Module = ${inspect(moduleToUse, {depth: null}).toString()}`;
 
     replaces.forEach(replace => {
         final.replace(`'${replace}'`, replace);
