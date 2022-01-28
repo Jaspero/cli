@@ -384,7 +384,7 @@ async function init() {
     return successMessage('Successfully created JMS project!');
 }
 
-async function createModule(route = process.cwd()) {
+async function createModule() {
     const modules = {
         basic: {
             id: '',
@@ -494,7 +494,7 @@ async function createModule(route = process.cwd()) {
         })
     }
 
-    const path = resolve(route, `setup/modules/${data.id}.module.ts`);
+    const path = resolve(process.cwd(), `setup/modules/${data.id}.module.ts`);
 
     let final = `export const ${data.id.toUpperCase()}_MODULE: Module = ${JSON.stringify(moduleSimple, null, 2)}`;
 
