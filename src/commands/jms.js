@@ -287,8 +287,8 @@ async function init() {
 
     replaceInFile.sync({
         files: `${process.cwd()}/${githubProject}/**/shared-config.const.ts`,
-        from: `cloudRegion: 'us-central1'`,
-        to: `cloudRegion: '${data.cloudRegion}'`
+        from: `cloudRegion: 'us-central1',`,
+        to: `cloudRegion: '${data.cloudRegion}',`
     });
 
     infoMessage('Creating web app in your firebase project.');
