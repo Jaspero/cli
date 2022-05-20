@@ -256,15 +256,15 @@ async function init() {
         open(`https://console.firebase.google.com/project/${data.projectId}/settings/serviceaccounts/adminsdk`);
     }, 1500);
 
-    infoMessage(`\nGenerate and download a new private key from Project settings.\nMove file to '${githubProject}/setup/serviceAccountKey.json'.\n`);
+    infoMessage(`\nGenerate and download a new private key from Project settings.\nMove file to '${githubProject}/definitions/serviceAccountKey.json'.\n`);
 
     let serviceAccountKey = false;
     while (!serviceAccountKey) {
         await pressEnter();
 
-        serviceAccountKey = existsSync(`${resolve(process.cwd(), githubProject, 'setup', 'serviceAccountKey.json')}`);
+        serviceAccountKey = existsSync(`${resolve(process.cwd(), githubProject, 'definitions', 'serviceAccountKey.json')}`);
         if (!serviceAccountKey) {
-            errorMessage(`\nFile 'serviceAccountKey.json' not found. Please check '${githubProject}/setup' directory.\n`);
+            errorMessage(`\nFile 'serviceAccountKey.json' not found. Please check '${githubProject}/definitions' directory.\n`);
         }
     }
 
