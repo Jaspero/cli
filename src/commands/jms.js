@@ -25,7 +25,7 @@ async function deployFunctions(route = process.cwd(), token, projectId) {
         return errorMessage(`Function deployment needs to run in an JMS project, but the functions folder couldn't be found.`);
     }
 
-    return execute({command: `cd ${path} && npm ci && npm run build && firebase deploy --only functions --project ${projectId} --token ${token}`, options: {}});
+    return execute({command: `cd ${path} && npm ci && npm run build:definitions && npm run build && firebase deploy --only functions --project ${projectId} --token ${token}`, options: {}});
 }
 
 async function deployFirestoreRules(route = process.cwd(), token, projectId) {
@@ -58,7 +58,7 @@ async function setup(route = process.cwd()) {
         return errorMessage(`The setup command needs to be run in an JMS project, but a project definitions couldn't be found.`);
     }
 
-    return execute({command: `cd ${setupPath} && npm ci && ts-node setup.ts p`, options: {}});
+    return execute({command: `cd ${setupPath} && npm ci && npm run build && ts-node setup.ts p`, options: {}});
 }
 
 async function login() {
@@ -85,6 +85,7 @@ async function init() {
 
     const projects = [];
     const projectsExecute = await execute({command: `firebase projects:list --token ${token}`});
+    
     if (!projectsExecute.success) {
         return errorMessage(projectsExecute.message);
     } else {
@@ -252,13 +253,15 @@ async function init() {
 
     await execute({command: `cd ${resolve(process.cwd(), githubProject)}`});
 
-    setTimeout(() => {
-        open(`https://console.firebase.google.com/project/${data.projectId}/settings/serviceaccounts/adminsdk`);
-    }, 1500);
+    setTimeout(() =>
+        open(`https://console.firebase.google.com/project/${data.projectId}/settings/serviceaccounts/adminsdk`),
+        1500
+    );
 
     infoMessage(`\nGenerate and download a new private key from Project settings.\nMove file to '${githubProject}/definitions/serviceAccountKey.json'.\n`);
 
     let serviceAccountKey = false;
+
     while (!serviceAccountKey) {
         await pressEnter();
 
@@ -325,23 +328,25 @@ async function init() {
     /**
      * Enable Firestore
      */
-    setTimeout(() => {
-        open(`https://console.firebase.google.com/project/${data.projectId}/firestore`);
-    }, 1500);
+    setTimeout(() =>
+        open(`https://console.firebase.google.com/project/${data.projectId}/firestore`),
+        1500
+    );
 
     infoMessage('\nPlease Enable Firestore for this project.\n');
+
     await pressEnter();
 
     /**
      * Upgrade billing plan
      */
-    setTimeout(() => {
-        open(`https://console.firebase.google.com/project/${data.projectId}/usage/details`);
-    })
+    setTimeout(() =>
+        open(`https://console.firebase.google.com/project/${data.projectId}/usage/details`)
+    )
 
     infoMessage('\nUpgrade Firebase project to Blaze plan.\n');
-    await pressEnter();
 
+    await pressEnter();
 
     const st = await inquirer.prompt({
         name: 'run',
