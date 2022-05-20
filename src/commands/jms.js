@@ -52,10 +52,10 @@ async function deployStorageRules(route = process.cwd(), token, projectId) {
 
 async function setup(route = process.cwd()) {
     route = JSON.stringify(route || {}) === '{}' ? process.cwd() : route;
-    const setupPath = resolve(route, 'setup');
+    const setupPath = resolve(route, 'definitions');
 
     if (!existsSync(setupPath)) {
-        return errorMessage(`The setup command needs to be run in an JMS project, but a project setup couldn't be found.`);
+        return errorMessage(`The setup command needs to be run in an JMS project, but a project definitions couldn't be found.`);
     }
 
     return execute({command: `cd ${setupPath} && npm ci && ts-node setup.ts p`, options: {}});
@@ -213,6 +213,10 @@ async function init() {
                     name: 'blog',
                     value: '-b flavor/blog'
                 },
+                {
+                    name: 'static',
+                    value: '-b flavor/static-svelte'
+                }
             ]
         }
     ]);
@@ -282,15 +286,9 @@ async function init() {
     });
 
     replaceInFile.sync({
-        files: `${process.cwd()}/${githubProject}/**/fb.module.ts`,
-        from: `useValue: 'us-central1'`,
-        to: `useValue: '${data.cloudRegion}'`
-    });
-
-    replaceInFile.sync({
-        files: `${process.cwd()}/${githubProject}/**/static-config.const.ts`,
-        from: `cloudRegion: 'us-central1',`,
-        to: `cloudRegion: '${data.cloudRegion}',`
+        files: `${process.cwd()}/${githubProject}/**/shared-config.const.ts`,
+        from: `cloudRegion: 'us-central1'`,
+        to: `cloudRegion: '${data.cloudRegion}'`
     });
 
     infoMessage('Creating web app in your firebase project.');
