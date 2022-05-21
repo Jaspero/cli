@@ -19,3 +19,5 @@ Now you can use it to set up a new/existing firebase project and github repo for
 ```
 jaspero jms init
 ```
+
+**Note:** In order to set secrets on a repo during `jms init` you'll need [Github CLI](https://cli.github.com/) installed.

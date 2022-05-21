@@ -1,6 +1,6 @@
 const {resolve} = require('path');
 const {existsSync, writeFileSync, readFileSync} = require('fs');
-const {execSync} = require('child_process');
+const {execSync, exec} = require('child_process');
 const {inspect} = require('util');
 const inquirer = require('inquirer');
 const replaceInFile = require('replace-in-file');
@@ -396,6 +396,39 @@ async function init() {
     }
 
     writeFileSync(`${process.cwd()}/${githubProject}/package.json`, JSON.stringify(package, null, 2));
+
+    /**
+     * Set up repo secrets. 
+     * Note: This will only work if the user has github cli set up.
+     */
+    try {
+        infoMessage('\nSetting up repository secrets.\n');
+        infoMessage('\nCreating FIREBASE_TOKEN\n');
+
+        exec(`gh secret set FIREBASE_TOKEN --body "${token}" -R ${data.github}`);
+
+        infoMessage('\nFIREBASE_TOKEN Creted sucessfully!\n');
+
+        /**
+         * Flavors that require a SERVICE_ACCOUNT
+         */
+        if (['-b flavor/blog', '-b flavor/static-svelte'].includes(data.flavor)) {
+            infoMessage('\nCreting SERVICE_ACCOUNT!\n');
+
+            const serviceAccount = JSON.stringify(
+                JSON.parse(
+                    readFileSync(`${resolve(process.cwd(), githubProject, 'definitions', 'serviceAccountKey.json')}`).toString()
+                ),
+            );
+
+            exec(`gh secret set SERVICE_ACCOUNT --body "${serviceAccount}" -R ${data.github}`);
+
+            infoMessage('\nSERVICE_ACCOUNT Created sucessfully!\n');
+        }
+    } catch (e) {
+        console.error(e);
+        infoMessage('\nFailed to set up repository secrets. Do you have Github CLI installed?\n');
+    }
 
     /**
      * Enable Firestore
