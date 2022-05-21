@@ -219,6 +219,15 @@ async function init() {
                     value: '-b flavor/static-svelte'
                 }
             ]
+        },
+        {
+            name: 'cmsTitle',
+            message: 'What should the title of the CMS be?',
+        },
+        {
+            name: 'webTitle',
+            message: 'What should the title of the website be?',
+            when: (data) => ['-b flavor/blog', '-b flavor/static-svelte'].includes(data.flavor)
         }
     ]);
 
@@ -293,6 +302,42 @@ async function init() {
         from: `cloudRegion: 'us-central1',`,
         to: `cloudRegion: '${data.cloudRegion}',`
     });
+
+    replaceInFile.sync({
+        files: `${process.cwd()}/${githubProject}/cms/**/index.html`,
+        from: '<title>JMS</title>',
+        to: `<title>${data.cmsTitle}</title>`
+    });
+
+    if (data.webTitle) {
+
+        switch (data.flavor) {
+            case '-b flavor/blog':
+                replaceInFile.sync({
+                    files: `${process.cwd()}/${githubProject}/web/**/index.html`,
+                    from: '<title>Web</title>',
+                    to: `<title>${data.webTitle}</title>`
+                });
+                replaceInFile.sync({
+                    files: `${process.cwd()}/${githubProject}/web/**/base-title.const.ts`,
+                    from: 'JMS',
+                    to: data.webTitle
+                });
+                replaceInFile.sync({
+                    files: `${process.cwd()}/${githubProject}/build/build.js`,
+                    from: `BASE_TITLE = 'JMS'`,
+                    to: `BASE_TITLE = '${data.webTitle}'`
+                });
+                break;
+            case '-b flavor/static-svelte':
+                replaceInFile.sync({
+                    files: `${process.cwd()}/${githubProject}/web/**/title.const.ts`,
+                    from: `BASE_TITLE = 'JMS'`,
+                    to: `BASE_TITLE = '${data.webTitle}'`
+                });
+                break;
+        }
+    }
 
     infoMessage('Creating web app in your firebase project.');
 
