@@ -383,6 +383,17 @@ async function init() {
     await pressEnter();
 
     /**
+     * Enable Auth
+     */
+    setTimeout(() =>
+        open(`https://console.firebase.google.com/project/${data.projectId}/authentication`)
+    )
+ 
+    infoMessage('\nUpgrade Firebase project to Blaze plan.\n');
+ 
+    await pressEnter();
+
+    /**
      * Upgrade billing plan
      */
     setTimeout(() =>
