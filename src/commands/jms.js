@@ -405,9 +405,7 @@ async function init() {
         infoMessage('\nSetting up repository secrets.\n');
         infoMessage('\nCreating FIREBASE_TOKEN\n');
 
-        exec(`gh secret set FIREBASE_TOKEN --body "${token}" -R ${data.github}`);
-
-        infoMessage('\nFIREBASE_TOKEN Creted sucessfully!\n');
+        await execute({command: `gh secret set FIREBASE_TOKEN --body "${token}" -R ${data.github}`});
 
         /**
          * Flavors that require a SERVICE_ACCOUNT
@@ -421,14 +419,34 @@ async function init() {
                 ),
             );
 
-            exec(`gh secret set SERVICE_ACCOUNT --body "${serviceAccount}" -R ${data.github}`);
-
-            infoMessage('\nSERVICE_ACCOUNT Created sucessfully!\n');
+            await execute({command: `gh secret set SERVICE_ACCOUNT --body "${serviceAccount}" -R ${data.github}`});
         }
     } catch (e) {
         console.error(e);
         infoMessage('\nFailed to set up repository secrets. Do you have Github CLI installed?\n');
     }
+
+    /**
+     * Set up ghtoken firebase secret if the flavor needs it.
+     */
+     if (['-b flavor/blog', '-b flavor/static-svelte'].includes(data.flavor)) {
+
+        setTimeout(() =>
+            open(`https://github.com/settings/tokens/new?description=${data.projectId}&scopes=repo`),
+            1500
+        );
+
+        const {ghToken} = await inquirer.prompt([{
+            name: 'ghToken',
+            message: 'Generated github token:',
+        }]);
+
+        if (ghToken) {
+            infoMessage('\nCreating a ghtoken in firebase secrets.\n');
+            await execute({command: `firebase functions:config:set prod.ghtoken=${ghToken} --project ${data.projectId} --token ${token}`});
+            infoMessage(`\nghtoken set, note, you'll need to deploy functions in order for this to persist.\n`);
+        }
+     }
 
     /**
      * Enable Firestore
