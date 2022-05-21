@@ -446,6 +446,16 @@ async function init() {
             await execute({command: `firebase functions:config:set prod.ghtoken=${ghToken} --project ${data.projectId} --token ${token}`});
             infoMessage(`\nghtoken set, note, you'll need to deploy functions in order for this to persist.\n`);
         }
+
+        infoMessage(`\nCreate a new firebase site for the website project. You should call it ${data.projectId}-web.\n`);
+
+        /**
+         * Add additional hosting site
+         */
+        setTimeout(() =>
+            open(`https://console.firebase.google.com/project/${data.projectId}/hosting/sites`),
+            1500
+        );
      }
 
     /**
