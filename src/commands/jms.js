@@ -1,5 +1,5 @@
 const {resolve} = require('path');
-const {existsSync, writeFileSync} = require('fs');
+const {existsSync, writeFileSync, readFileSync} = require('fs');
 const {execSync} = require('child_process');
 const {inspect} = require('util');
 const inquirer = require('inquirer');
@@ -228,6 +228,12 @@ async function init() {
             name: 'webTitle',
             message: 'What should the title of the website be?',
             when: (data) => ['-b flavor/blog', '-b flavor/static-svelte'].includes(data.flavor)
+        },
+        {
+            name: 'releasePipeline',
+            message: 'Do you need a release pipeline?',
+            type: 'confirm',
+            default: false
         }
     ]);
 
@@ -369,6 +375,27 @@ async function init() {
         from: /firebase: {(.|\n)* }/,
         to: `firebase: ${config.replace(/(^)(?!^{$)/gm, '  ')}`
     });
+
+    const package = JSON.parse(
+        readFileSync(`${process.cwd()}/${githubProject}/package.json`).toString()
+    );
+
+    package.name = `@jaspero/${githubProject}`;
+    package.version = '0.0.1';
+    package.repository.url = `https://github.com/${data.github.toLowerCase()}`;
+    package.bugs.url = `https://github.com/${data.github.toLowerCase()}/issues`;
+    package.homepage = `https://${data.packageId}.web.app`;
+
+    if (!data.releasePipeline) {
+        delete package.devDependencies['@semantic-release/changelog'];
+        delete package.devDependencies['@semantic-release/git'];
+        delete package.devDependencies['@semantic-release/npm'];
+        delete package.devDependencies['semantic-release'];
+        delete package.scripts['semantic-release'];
+        delete package.release;
+    }
+
+    writeFileSync(`${process.cwd()}/${githubProject}/package.json`, JSON.stringify(package, null, 2));
 
     /**
      * Enable Firestore
