@@ -477,7 +477,7 @@ async function init() {
         open(`https://console.firebase.google.com/project/${data.projectId}/authentication`)
     )
  
-    infoMessage('\nUpgrade Firebase project to Blaze plan.\n');
+    infoMessage('\nPlease enable authentication for this project.\n');
  
     await pressEnter();
 
