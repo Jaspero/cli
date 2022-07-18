@@ -5,7 +5,7 @@ const {inspect} = require('util');
 const inquirer = require('inquirer');
 const replaceInFile = require('replace-in-file');
 const open = require('open');
-const {capitalize} = require('@jaspero/utils');
+const {capitalize, random} = require('@jaspero/utils');
 const conf = require('../config');
 const {
     execute,
@@ -234,6 +234,23 @@ async function init() {
             message: 'Do you need a release pipeline?',
             type: 'confirm',
             default: false
+        },
+        {
+            name: 'sendgridKey',
+            message: 'What is your SendGrid Token?'
+        },
+        {
+            name: 'emailName',
+            message: 'What should be the name on your email sender?'
+        },
+        {
+            name: 'emailEmail',
+            message: 'What should the email on your sender be?'
+        },
+        {
+            name: 'esecret',
+            message: 'What should be the secret for your email token HMAC?',
+            default: random.string(12)
         }
     ]);
 
@@ -424,6 +441,19 @@ async function init() {
     } catch (e) {
         console.error(e);
         infoMessage('\nFailed to set up repository secrets. Do you have Github CLI installed?\n');
+    }
+
+    const secretsToSet = [
+        {key: data.sendgridKey, target: 'prod.sendgrid.key'},
+        {key: data.emailName, target: 'prod.email.name'},
+        {key: data.emailEmail, target: 'prod.email.email'},
+        {key: data.esecret, target: 'prod.esecret'}
+    ];
+
+    for (const secret of secretsToSet) {
+        infoMessage(`\nCreating ${secret.target} in firebase secrets.\n`);
+        await execute({command: `firebase functions:config:set ${secret.target}=${secret.key} --project ${data.projectId} --token ${token}`});
+        infoMessage(`\n${secret.target} set, note, you'll need to deploy functions in order for this to persist.\n`);
     }
 
     /**
