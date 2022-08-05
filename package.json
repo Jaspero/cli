@@ -22,18 +22,19 @@
   },
   "dependencies": {
     "@jaspero/utils": "1.7.1",
-    "adm-zip": "0.5.2",
-    "commander": "7.1.0",
-    "firebase-tools": "9.5.0",
-    "inquirer": "7.3.3",
-    "open": "7.4.1",
-    "replace-in-file": "6.2.0"
+    "adm-zip": "0.5.9",
+    "commander": "9.4.0",
+    "firebase-tools": "11.4.2",
+    "inquirer": "8.0.0",
+    "inquirer-file-tree-selection-prompt": "1.0.19",
+    "open": "8.4.0",
+    "replace-in-file": "6.3.5"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/Jaspero/cli.git"
   },
   "devDependencies": {
-    "semantic-release": "17.3.9"
+    "semantic-release": "19.0.3"
   }
 }

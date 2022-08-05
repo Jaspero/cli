@@ -15,6 +15,8 @@ const {
     pressEnter
 } = require('../utils');
 
+inquirer.registerPrompt('file-tree-selection', require('inquirer-file-tree-selection-prompt'));
+
 let token;
 
 async function deployFunctions(route = process.cwd(), token, projectId) {
@@ -58,7 +60,7 @@ async function setup(route = process.cwd()) {
         return errorMessage(`The setup command needs to be run in an JMS project, but a project definitions couldn't be found.`);
     }
 
-    return execute({command: `cd ${setupPath} && npm ci && npm run build && ts-node setup.ts p`, options: {}});
+    return execute({command: `cd ${setupPath} && npm ci && npm run build && npm run process && ts-node setup.ts p`, options: {}});
 }
 
 async function login() {
@@ -222,12 +224,72 @@ async function init() {
         },
         {
             name: 'cmsTitle',
-            message: 'What should the title of the CMS be?',
+            message: 'CMS Title:',
         },
         {
             name: 'webTitle',
-            message: 'What should the title of the website be?',
+            message: 'Website Title:',
             when: (data) => ['-b flavor/blog', '-b flavor/static-svelte'].includes(data.flavor)
+        },
+        {
+            name: 'logo',
+            message: 'Logo (Needs to be a png file):',
+            type: 'file-tree-selection',
+            enableGoUpperDirectory: true,
+            validate: v => v.endsWith('.png') || !v.includes('.'),
+            onlyShowValid: true
+        },
+        {
+            name: 'favicon',
+            message: 'Favicon (Needs to be a ico file):',
+            type: 'file-tree-selection',
+            enableGoUpperDirectory: true,
+            validate: v => v.endsWith('.ico') || !v.includes('.'),
+            onlyShowValid: true
+        },
+        {
+            name: 'theme',
+            message: 'Theme:',
+            type: 'list',
+            loop: false,
+            default: 'light',
+            choices: [
+                {
+                    name: 'Light',
+                    value: 'light'
+                },
+                {
+                    name: 'Dark',
+                    value: 'dark'
+                }
+            ]
+        },
+        {
+            name: 'themePrimaryColor',
+            message: 'Primary Color:',
+            validate: v => !v || (v.startsWith('#') && (v.length === 4 || v.length === 7))
+        },
+        {
+            name: 'themeAccentColor',
+            message: 'Accent Color:',
+            validate: v => !v || (v.startsWith('#') && (v.length === 4 || v.length === 7))
+        },
+        {
+            name: 'themeSidebarPosition',
+            message: 'Sidebar Position:',
+            type: 'list',
+            loop: false,
+            default: 0,
+            choices: [
+                {
+                    name: 'Left',
+                    value: 0
+                },
+                {
+                    name: 'Right',
+                    value: 1
+                }
+            ]
         },
         {
             name: 'releasePipeline',
@@ -237,15 +299,15 @@ async function init() {
         },
         {
             name: 'sendgridKey',
-            message: 'What is your SendGrid Token?'
+            message: 'SendGrid Token:'
         },
         {
             name: 'emailName',
-            message: 'What should be the name on your email sender?'
+            message: 'Email Sender Name:'
         },
         {
             name: 'emailEmail',
-            message: 'What should the email on your sender be?'
+            message: 'Email Sender Email:'
         },
         {
             name: 'esecret',
@@ -360,6 +422,94 @@ async function init() {
                 });
                 break;
         }
+    }
+
+    if (data.logo) {
+        await execute({command: `cp ${data.logo} ${process.cwd()}/${githubProject}/client/projects/cms/src/assets/images/logo.png`})
+    }
+
+    if (data.favicon) {
+        await execute({command: `cp ${data.favicon} ${process.cwd()}/${githubProject}/client/projects/cms/src/favicon.ico`})
+    }
+
+    /**
+     * Light is the default theme so we don't
+     * need to change it in that case.
+     */
+    if (data.theme !== 'light') {
+
+        [
+            {
+                from: `theme    : #ffffff, /* Sidebar background color */ /* #262626 - dark sidebar */`,
+                to: `theme    : #262626, /* Sidebar background color */ /* #ffffff - light sidebar */`
+            },
+            {
+                from: `contrast : #262626, /* Sidebar text color */ /* #ffffff - dark sidebar */`,
+                to: `contrast : #ffffff, /* Sidebar text color */ /* #262626 - light sidebar */`
+            },
+            {
+                from: `accent   : #1C7ED6, /* Sidebar icon color */ /* #80B2ED - dark sidebar */`,
+                to: `accent   : #80B2ED, /* Sidebar icon color */ /* #1C7ED6 - light sidebar */`
+            },
+            {
+                from: `active   : #E7F5FF, /* Background color of active items in sidebar */ /* #283B54 - dark sidebar */`,
+                to: `active   : #283B54, /* Background color of active items in sidebar */ /* #E7F5FF - light sidebar */`
+            },
+            {
+                from: `hover    : #dedede, /* Background color of hovered items in sidebar */ /* #363636 - dark sidebar */`,
+                to: `hover    : #363636, /* Background color of hovered items in sidebar */ /* #dedede - light sidebar */`
+            },
+            {
+                from: `dd-b     : #d0d0d0, /* Dropdown border color */ /* rgba(255,255,255,.3) - dark sidebar */`,
+                to: `dd-b     : rgba(255,255,255,.3), /* Dropdown border color */ /* #d0d0d0 - light sidebar */`
+            },
+            {
+                from: `dd-b-a   : #737373, /* Dropdown border color - active */ /* white - dark sidebar */`,
+                to: `dd-b-a   : white, /* Dropdown border color - active */ /* #737373 - light sidebar */`
+            },
+        ]
+            .forEach(dt => {
+                replaceInFile.sync({
+                    files: `${process.cwd()}/${githubProject}/**/_theme.scss`,
+                    ...dt
+                });
+            })
+    }
+
+    if (data.themePrimaryColor) {
+        replaceInFile.sync({
+            files: `${process.cwd()}/${githubProject}/**/_theme.scss`,
+            from: `theme    : #3F50B5,`,
+            to: `theme    : ${data.themePrimaryColor},`
+        });
+
+        replaceInFile.sync({
+            files: `${process.cwd()}/${githubProject}/definitions/modules/emails/style.css`,
+            from: `background: #3f50b5;`,
+            to: `background: ${data.themePrimaryColor};`
+        });
+    }
+
+    if (data.themeAccentColor) {
+        replaceInFile.sync({
+            files: `${process.cwd()}/${githubProject}/**/_theme.scss`,
+            from: `theme    : #ff4081,`,
+            to: `theme    : ${data.themeAccentColor},`
+        });
+
+        replaceInFile.sync({
+            files: `${process.cwd()}/${githubProject}/definitions/modules/emails/style.css`,
+            from: `background: #ff4081;`,
+            to: `background: ${data.themeAccentColor};`
+        });
+    }
+
+    if (data.themeSidebarPosition) {
+        replaceInFile.sync({
+            files: `${process.cwd()}/${githubProject}/**/_theme.scss`,
+            from: `position : 0,`,
+            to: `position : 1,`
+        });
     }
 
     infoMessage('Creating web app in your firebase project.');
@@ -578,7 +728,7 @@ async function createModule() {
                 }
             },
             definitions: {
-                id: {label: 'GENERAL.ID', disableOn: 'edit'}
+                id: {label: 'ID', disableOn: 'edit'}
             }
         },
         advanced: {
@@ -595,7 +745,7 @@ async function createModule() {
                 }
             },
             definitions: {
-                id: {label: 'GENERAL.ID', disableOn: 'edit'}
+                id: {label: 'ID', disableOn: 'edit'}
             }
         }
     };
