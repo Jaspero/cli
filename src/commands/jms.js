@@ -593,6 +593,17 @@ async function init() {
         infoMessage('\nFailed to set up repository secrets. Do you have Github CLI installed?\n');
     }
 
+    try {
+        infoMessage('\nAdding Cloud Datastore Import Export Admin role.');
+
+        await execute({
+            command: `gcloud projects add-iam-policy-binding ${data.projectId} --member serviceAccount:${data.projectId}@appspot.gserviceaccount.com --role roles/datastore.importExportAdmin`
+        });
+    } catch (e) {
+        console.error(e);
+        infoMessage('\nFailed to add Cloud Datastore Import Export Admin role.');
+    }
+
     const secretsToSet = [
         {key: data.sendgridKey, target: 'prod.sendgrid.key'},
         {key: data.emailName, target: 'prod.email.name'},
@@ -670,6 +681,17 @@ async function init() {
 
     infoMessage('\nUpgrade Firebase project to Blaze plan.\n');
 
+    await pressEnter();
+
+    /**
+     * Enable IAM Service Account Credentials API
+     */
+    setTimeout(() =>
+        open(`https://console.cloud.google.com/apis/library/iamcredentials.googleapis.com?project=${data.projectId}`)
+    )
+  
+    infoMessage('\nPlease enable the IAM Service Account Credentials API for this project.\nWe need this to be able to verify and create custom token.\n');
+  
     await pressEnter();
 
     const st = await inquirer.prompt({
