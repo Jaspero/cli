@@ -642,8 +642,8 @@ async function init() {
      * Note: This will only work if the user has github cli set up.
      */
     try {
-        infoMessage('\nSetting up repository secrets.\n');
-        infoMessage('\nCreating FIREBASE_TOKEN\n');
+        infoMessage('\nSetting up repository secrets.');
+        infoMessage('\nCreating FIREBASE_TOKEN');
 
         await execute({command: `gh secret set FIREBASE_TOKEN --body "${token}" -R ${data.github}`});
 
@@ -651,19 +651,19 @@ async function init() {
          * Flavors that require a SERVICE_ACCOUNT
          */
         if (['-b flavor/blog', '-b flavor/static-svelte'].includes(data.flavor)) {
-            infoMessage('\nCreting SERVICE_ACCOUNT!\n');
+            infoMessage('\nCreting SERVICE_ACCOUNT');
 
             const serviceAccount = JSON.stringify(
                 JSON.parse(
                     readFileSync(`${resolve(process.cwd(), githubProject, 'definitions', 'serviceAccountKey.json')}`).toString()
-                ),
+                )
             );
 
-            await execute({command: `gh secret set SERVICE_ACCOUNT --body "${serviceAccount}" -R ${data.github}`});
+            await execute({command: `gh secret set SERVICE_ACCOUNT --body '${serviceAccount}' -R ${data.github}`});
         }
     } catch (e) {
         console.error(e);
-        infoMessage('\nFailed to set up repository secrets. Do you have Github CLI installed?\n');
+        infoMessage('\nFailed to set up repository secrets. Do you have Github CLI installed?');
     }
 
     try {
@@ -685,9 +685,13 @@ async function init() {
     ];
 
     for (const secret of secretsToSet) {
-        infoMessage(`\nCreating ${secret.target} in firebase secrets.\n`);
-        await execute({command: `firebase functions:config:set ${secret.target}=${secret.key} --project ${data.projectId} --token ${token}`});
-        infoMessage(`\n${secret.target} set, note, you'll need to deploy functions in order for this to persist.\n`);
+        if (!secret.key) {
+            continue;
+        }
+
+        infoMessage(`\nCreating ${secret.target} in firebase secrets.`);
+        await execute({command: `firebase functions:config:set ${secret.target}="${secret.key}" --project ${data.projectId} --token ${token}`});
+        infoMessage(`\n${secret.target} created. Note, you'll need to deploy functions in order for this to persist.`);
     }
 
     /**
@@ -697,7 +701,6 @@ async function init() {
 
         setTimeout(() =>
             open(`https://github.com/settings/tokens/new?description=${data.projectId}&scopes=repo`),
-            1500
         );
 
         const {ghToken} = await inquirer.prompt([{
@@ -706,19 +709,18 @@ async function init() {
         }]);
 
         if (ghToken) {
-            infoMessage('\nCreating a ghtoken in firebase secrets.\n');
+            infoMessage('\nCreating a ghtoken in firebase secrets.');
             await execute({command: `firebase functions:config:set prod.ghtoken=${ghToken} --project ${data.projectId} --token ${token}`});
-            infoMessage(`\nghtoken set, note, you'll need to deploy functions in order for this to persist.\n`);
+            infoMessage(`\nghtoken set, note, you'll need to deploy functions in order for this to persist.`);
         }
 
-        infoMessage(`\nCreate a new firebase site for the website project. You should call it ${data.projectId}-web.\n`);
+        infoMessage(`\nCreate a new firebase site for the website project. You should call it ${data.projectId}-web.\nYou should also configure "Release storage settings" to 1.`);
 
         /**
          * Add additional hosting site
          */
         setTimeout(() =>
-            open(`https://console.firebase.google.com/project/${data.projectId}/hosting/sites`),
-            1500
+            open(`https://console.firebase.google.com/project/${data.projectId}/hosting/sites`)
         );
      }
 
@@ -726,8 +728,7 @@ async function init() {
      * Enable Firestore
      */
     setTimeout(() =>
-        open(`https://console.firebase.google.com/project/${data.projectId}/firestore`),
-        1500
+        open(`https://console.firebase.google.com/project/${data.projectId}/firestore`)
     );
 
     infoMessage('\nPlease Enable Firestore for this project.\n');
@@ -774,7 +775,7 @@ async function init() {
         open(`https://console.cloud.google.com/apis/library/iamcredentials.googleapis.com?project=${data.projectId}`)
     )
   
-    infoMessage('\nPlease enable the IAM Service Account Credentials API for this project.\nWe need this to be able to verify and create custom token.\n');
+    infoMessage('\nPlease enable the IAM Service Account Credentials API for this project.\nWe need this to be able to verify and create custom token.');
   
     await pressEnter();
 
