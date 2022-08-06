@@ -203,6 +203,28 @@ async function init() {
             ]
         },
         {
+            name: 'access',
+            message: 'Access (Public):',
+            type: 'list',
+            loop: false,
+            default: 'public',
+            choices: [
+                {
+                    name: 'Public',
+                    value: 'public'
+                },
+                {
+                    name: 'Private',
+                    value: 'private'
+                }
+            ]
+        },
+        {
+            name: 'license',
+            message: 'License (MIT):',
+            default: 'MIT'
+        },
+        {
             name: 'flavor',
             message: 'JMS Flavor:',
             type: 'list',
@@ -579,7 +601,8 @@ async function init() {
     package.version = '0.0.1';
     package.repository.url = `https://github.com/${data.github.toLowerCase()}`;
     package.bugs.url = `https://github.com/${data.github.toLowerCase()}/issues`;
-    package.homepage = `https://${data.packageId}.web.app`;
+    package.homepage = `https://${data.projectId}.web.app`;
+    package.license = data.license;
 
     if (!data.releasePipeline) {
         delete package.devDependencies['@semantic-release/changelog'];
@@ -588,6 +611,28 @@ async function init() {
         delete package.devDependencies['semantic-release'];
         delete package.scripts['semantic-release'];
         delete package.release;
+
+        await execute({command: `rm ${process.cwd()}/${githubProject}/CHANGELOG.md`});
+
+    } else {
+        replaceInFile.sync({
+            files: `${process.cwd()}/${githubProject}/CHANGELOG.md`,
+            from: /(.|\n|\t\r)*/g,
+            to: ``
+        });
+    }
+
+    if (data.access !== 'public') {
+        const toDelete = [
+            'CODE_OF_CONDUCT.md',
+            'CONTRIBUTING.md',
+            'LICENSE',
+            'SECURITY.md'
+        ];
+        
+        for (const path of toDelete) {
+            await execute({command: `rm ${process.cwd()}/${githubProject}/${path}`});
+        }
     }
 
     writeFileSync(`${process.cwd()}/${githubProject}/package.json`, JSON.stringify(package, null, 2));
