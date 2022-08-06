@@ -30,7 +30,7 @@ async function deployFunctions(route = process.cwd(), token, projectId) {
     return execute({command: `cd ${path} && npm ci && npm run build:definitions && npm run build && firebase deploy --only functions --project ${projectId} --token ${token}`, options: {}});
 }
 
-async function deployFirestoreRules(route = process.cwd(), token, projectId) {
+async function deployFirestore(prefix, route = process.cwd(), token, projectId) {
     route = JSON.stringify(route || {}) === '{}' ? process.cwd() : route;
     const path = resolve(route);
 
@@ -38,7 +38,15 @@ async function deployFirestoreRules(route = process.cwd(), token, projectId) {
         return errorMessage(`Rules deployment needs to run in an JMS project.`);
     }
 
-    return execute({command: `cd ${path} && firebase deploy --only firestore:rules --project ${projectId} --token ${token}`, options: {}});
+    return execute({command: `cd ${path} && firebase deploy --only firestore:${prefix} --project ${projectId} --token ${token}`, options: {}});
+}
+
+function deployFirestoreRules(route = process.cwd(), token, projectId) {
+    return deployFirestore('rules', route = process.cwd(), token, projectId);
+}
+
+function deployFirestoreIndexes(route = process.cwd(), token, projectId) {
+    return deployFirestore('indexes', route = process.cwd(), token, projectId);
 }
 
 async function deployStorageRules(route = process.cwd(), token, projectId) {
@@ -427,7 +435,7 @@ async function init() {
     });
 
     replaceInFile.sync({
-        files: `${process.cwd()}/${githubProject}/cms/**/index.html`,
+        files: `${process.cwd()}/${githubProject}/client/projects/cms/src/index.html`,
         from: '<title>JMS</title>',
         to: `<title>${data.cmsTitle}</title>`
     });
@@ -811,6 +819,10 @@ async function init() {
         {
             message: 'Deploy Firestore rules?',
             method: deployFirestoreRules
+        },
+        {
+            message: 'Deploy Firestore indexes?',
+            method: deployFirestoreIndexes
         },
         {
             message: 'Deploy Storage rules?',
