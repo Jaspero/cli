@@ -394,6 +394,16 @@ async function init() {
         to: `<title>${data.cmsTitle}</title>`
     });
 
+
+    /**
+     * Email Layout adjustment
+     */
+    replaceInFile.sync({
+        files: `${process.cwd()}/${githubProject}/definitions/modules/emails/layout.html`,
+        from: '© Jaspero',
+        to: `© ${data.cmsTitle}`
+    });
+
     if (data.webTitle) {
 
         switch (data.flavor) {
@@ -425,11 +435,29 @@ async function init() {
     }
 
     if (data.logo) {
-        await execute({command: `cp ${data.logo} ${process.cwd()}/${githubProject}/client/projects/cms/src/assets/images/logo.png`})
+        await execute({command: `cp ${data.logo} ${process.cwd()}/${githubProject}/client/projects/cms/src/assets/images/logo.png`});
+
+        switch (data.flavor) {
+            case '-b flavor/blog':
+                await execute({command: `cp ${data.logo} ${process.cwd()}/${githubProject}/client/projects/cms/web/assets/images/logo.png`});
+                break;
+            case '-b flavor/static-svelte':
+                await execute({command: `cp ${data.logo} ${process.cwd()}/${githubProject}/web/static/logo.png`});
+                break;
+        }
     }
 
     if (data.favicon) {
-        await execute({command: `cp ${data.favicon} ${process.cwd()}/${githubProject}/client/projects/cms/src/favicon.ico`})
+        await execute({command: `cp ${data.favicon} ${process.cwd()}/${githubProject}/client/projects/cms/src/favicon.ico`});
+
+        switch (data.flavor) {
+            case '-b flavor/blog':
+                await execute({command: `cp ${data.logo} ${process.cwd()}/${githubProject}/client/projects/web/src/favicon.ico`});
+                break;
+            case '-b flavor/static-svelte':
+                await execute({command: `cp ${data.logo} ${process.cwd()}/${githubProject}/web/static/favicon.ico`});
+                break;
+        }
     }
 
     /**
