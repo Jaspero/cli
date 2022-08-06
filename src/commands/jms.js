@@ -741,8 +741,19 @@ async function init() {
         open(`https://console.firebase.google.com/project/${data.projectId}/authentication`)
     )
  
-    infoMessage('\nPlease enable authentication for this project.\n');
+    infoMessage(`\nPlease enable authentication for this project.\nEnable authentication with google as well as email and password.\n`);
  
+    await pressEnter();
+
+    /**
+     * Replace Action URL
+     */
+    setTimeout(() =>
+        open(`https://console.firebase.google.com/project/${data.projectId}/authentication/emails`)
+    )
+
+    infoMessage(`\nPlease replace the Action URL with the following:\nhttps://${data.cloudRegion}-${data.projectId}.cloudfunctions.net/actionController\n`);
+
     await pressEnter();
 
     /**
