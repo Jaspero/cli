@@ -245,6 +245,10 @@ async function init() {
             ]
         },
         {
+            name: 'projectName',
+            message: 'Project Name:',
+        },
+        {
             name: 'cmsTitle',
             message: 'CMS Title:',
         },
@@ -405,6 +409,18 @@ async function init() {
     });
 
     replaceInFile.sync({
+        files: `${process.cwd()}/${githubProject}/README.md`,
+        from: /jms/g,
+        to: data.projectId
+    });
+
+    replaceInFile.sync({
+        files: `${process.cwd()}/${githubProject}/README.md`,
+        from: '# JMS',
+        to: `# ${data.projectName}`
+    });
+
+    replaceInFile.sync({
         files: `${process.cwd()}/${githubProject}/**/shared-config.const.ts`,
         from: `cloudRegion: 'us-central1',`,
         to: `cloudRegion: '${data.cloudRegion}',`
@@ -423,7 +439,7 @@ async function init() {
     replaceInFile.sync({
         files: `${process.cwd()}/${githubProject}/definitions/modules/emails/layout.html`,
         from: '© Jaspero',
-        to: `© ${data.cmsTitle}`
+        to: `© ${data.projectName}`
     });
 
     if (data.webTitle) {
@@ -613,6 +629,8 @@ async function init() {
         delete package.release;
 
         await execute({command: `rm ${process.cwd()}/${githubProject}/CHANGELOG.md`});
+        await execute({command: `rm ${process.cwd()}/${githubProject}/.github/workflows/release.workflow.yml`});
+        await execute({command: `rm ${process.cwd()}/${githubProject}/.github/workflows/lighthouse.workflow.yml`});
 
     } else {
         replaceInFile.sync({
