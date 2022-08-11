@@ -6,6 +6,7 @@ const inquirer = require('inquirer');
 const replaceInFile = require('replace-in-file');
 const open = require('open');
 const {capitalize, random} = require('@jaspero/utils');
+const admin = require('firebase-admin');
 const conf = require('../config');
 const {
     execute,
@@ -347,6 +348,15 @@ async function init() {
             name: 'esecret',
             message: 'What should be the secret for your email token HMAC?',
             default: random.string(12)
+        },
+        {
+            name: 'initialUserEmail',
+            message: 'Admin User Email:'
+        },
+        {
+            name: 'initialUserPassword',
+            message: 'Admin User Password:',
+            validate: v => !v || v.length >= 6
         }
     ]);
 
@@ -757,7 +767,7 @@ async function init() {
         open(`https://console.firebase.google.com/project/${data.projectId}/firestore`)
     );
 
-    infoMessage('\nPlease Enable Firestore for this project.\n');
+    infoMessage('\nPlease Enable Firestore for this project.');
 
     await pressEnter();
 
@@ -768,7 +778,7 @@ async function init() {
         open(`https://console.firebase.google.com/project/${data.projectId}/authentication`)
     )
  
-    infoMessage(`\nPlease enable authentication for this project.\nEnable authentication with google as well as email and password.\n`);
+    infoMessage(`\nPlease enable authentication for this project.\nEnable authentication with google as well as email and password.`);
  
     await pressEnter();
 
@@ -779,7 +789,7 @@ async function init() {
         open(`https://console.firebase.google.com/project/${data.projectId}/authentication/emails`)
     )
 
-    infoMessage(`\nPlease replace the Action URL with the following:\nhttps://${data.cloudRegion}-${data.projectId}.cloudfunctions.net/actionController\n`);
+    infoMessage(`\nPlease replace the Action URL with the following:\nhttps://${data.cloudRegion}-${data.projectId}.cloudfunctions.net/actionController`);
 
     await pressEnter();
 
@@ -790,7 +800,7 @@ async function init() {
         open(`https://console.firebase.google.com/project/${data.projectId}/usage/details`)
     )
 
-    infoMessage('\nUpgrade Firebase project to Blaze plan.\n');
+    infoMessage('\nUpgrade Firebase project to Blaze plan.');
 
     await pressEnter();
 
@@ -813,6 +823,34 @@ async function init() {
 
     if (st.run) {
         await setup(resolve(process.cwd(), githubProject));
+    }
+
+    
+    if (data.initialUserEmail && data.initialUserPassword) {
+        infoMessage('\nCreating initial user with admin role.');
+
+        const instance = admin.initializeApp({
+            credential: admin.credential.cert(
+                JSON.parse(
+                    readFileSync(`${resolve(process.cwd(), githubProject, 'definitions', 'serviceAccountKey.json')}`).toString()
+                )
+            )
+        }, 'instance');
+        const auth = instance.auth();
+        const firestore = instance.firestore();
+
+        const user = await auth.createUser({
+            email: data.initialUserEmail,
+            password: data.initialUserPassword
+        });
+
+        await auth.setCustomUserClaims(user.uid, {role: 'admin'});
+        await firestore.doc(`users/${user.uid}`).set({
+            createdOn: Date.now(),
+            email: user.email,
+            active: true,
+            role: 'admin'
+        }, {merge: true});
     }
 
     const deploys = [
