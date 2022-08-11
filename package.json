@@ -24,6 +24,7 @@
     "@jaspero/utils": "1.7.1",
     "adm-zip": "0.5.9",
     "commander": "9.4.0",
+    "firebase-admin": "^11.0.1",
     "firebase-tools": "11.4.2",
     "inquirer": "8.0.0",
     "inquirer-file-tree-selection-prompt": "1.0.19",
