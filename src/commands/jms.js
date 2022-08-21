@@ -267,12 +267,19 @@ async function init() {
             when: (data) => ['-b flavor/blog', '-b flavor/static-svelte'].includes(data.flavor)
         },
         {
+            name: 'customLogoAndFavicon',
+            message: 'Provide custom logo and favicon?',
+            type: 'confirm',
+            default: false
+        },
+        {
             name: 'logo',
             message: 'Logo (Needs to be a png file):',
             type: 'file-tree-selection',
             enableGoUpperDirectory: true,
             validate: v => v.endsWith('.png') || !v.includes('.'),
-            onlyShowValid: true
+            onlyShowValid: true,
+            when: data => data.customLogoAndFavicon
         },
         {
             name: 'favicon',
@@ -280,7 +287,8 @@ async function init() {
             type: 'file-tree-selection',
             enableGoUpperDirectory: true,
             validate: v => v.endsWith('.ico') || !v.includes('.'),
-            onlyShowValid: true
+            onlyShowValid: true,
+            when: data => data.customLogoAndFavicon
         },
         {
             name: 'theme',
