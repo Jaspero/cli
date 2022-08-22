@@ -628,7 +628,7 @@ async function init() {
     const configExecute = await execute({command: `firebase apps:sdkconfig Web --project ${data.projectId} ${tokenSuffix}`});
 
     if (!configExecute.success) {
-        if (configExecute.message.includes('has multiple apps, must specify an app id.')) {
+        if (configExecute.message.includes('has multiple apps, must specify an app id.') || configExecute.message.includes('There are no WEB apps')) {
             const createAppExecute = await execute({command: `firebase apps:create Web ${githubProject} --project ${data.projectId} ${tokenSuffix}`});
             if (!createAppExecute.success) {
                 return errorMessage(createAppExecute.message);
