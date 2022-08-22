@@ -90,12 +90,25 @@ async function init() {
 
     token = conf.get('token');
 
-    if (!token) {
-        await login();
+    const {useToken} = await inquirer.prompt([
+        {
+            name: 'usetoken',
+            message: 'Use firebase token?',
+            type: 'confirm',
+            default: false
+        }
+    ]);
+
+    if (useToken) {
+        if (!token) {
+            await login();
+        }
     }
 
+    const tokenSuffix = useToken ? `--token ${token}` : '';
+
     const projects = [];
-    const projectsExecute = await execute({command: `firebase projects:list --token ${token}`});
+    const projectsExecute = await execute({command: `firebase projects:list ${tokenSuffix}`});
     
     if (!projectsExecute.success) {
         return errorMessage(projectsExecute.message);
@@ -372,7 +385,7 @@ async function init() {
 
         infoMessage(`Creating new firebase project: ${data.projectName}.`);
 
-        const createProjectExecute = await execute({command: `firebase projects:create ${data.projectId} -n "${data.projectName}" --token ${token}`});
+        const createProjectExecute = await execute({command: `firebase projects:create ${data.projectId} -n "${data.projectName}" ${tokenSuffix}`});
         if (!createProjectExecute.success) {
             return errorMessage(createProjectExecute.message);
         } else {
@@ -607,23 +620,23 @@ async function init() {
     infoMessage('Creating web app in your firebase project.');
 
     let config;
-    const configExecute = await execute({command: `firebase apps:sdkconfig Web --project ${data.projectId} --token ${token}`});
+    const configExecute = await execute({command: `firebase apps:sdkconfig Web --project ${data.projectId} ${tokenSuffix}`});
 
     if (!configExecute.success) {
         if (configExecute.message.includes('has multiple apps, must specify an app id.')) {
-            const createAppExecute = await execute({command: `firebase apps:create Web ${githubProject} --project ${data.projectId} --token ${token}`});
+            const createAppExecute = await execute({command: `firebase apps:create Web ${githubProject} --project ${data.projectId} ${tokenSuffix}`});
             if (!createAppExecute.success) {
                 return errorMessage(createAppExecute.message);
             } else {
                 const createApp = createAppExecute.message.split('\n').filter(item => item);
                 const configCommand = createApp[createApp.length - 1].trim();
 
-                const sdkConfig = execSync(`${configCommand} --project ${data.projectId} --token ${token}`, {stdio: ['pipe', 'pipe', 'ignore']}).toString();
+                const sdkConfig = execSync(`${configCommand} --project ${data.projectId} ${tokenSuffix}`, {stdio: ['pipe', 'pipe', 'ignore']}).toString();
                 config = sdkConfig.substring(sdkConfig.indexOf('{'), sdkConfig.indexOf('}') + 1);
             }
         }
     } else {
-        const sdkConfig = execSync(`firebase apps:sdkconfig Web --project ${data.projectId} --token ${token}`, {stdio: ['pipe', 'pipe', 'ignore']}).toString();
+        const sdkConfig = execSync(`firebase apps:sdkconfig Web --project ${data.projectId} ${tokenSuffix}`, {stdio: ['pipe', 'pipe', 'ignore']}).toString();
         config = sdkConfig.substring(sdkConfig.indexOf('{'), sdkConfig.indexOf('}') + 1);
     }
 
@@ -689,6 +702,10 @@ async function init() {
         infoMessage('\nSetting up repository secrets.');
         infoMessage('\nCreating FIREBASE_TOKEN');
 
+        if (!token) {
+            await login();
+        }
+
         await execute({command: `gh secret set FIREBASE_TOKEN --body "${token}" -R ${data.github}`});
 
         /**
@@ -734,7 +751,7 @@ async function init() {
         }
 
         infoMessage(`\nCreating ${secret.target} in firebase secrets.`);
-        await execute({command: `firebase functions:config:set ${secret.target}="${secret.key}" --project ${data.projectId} --token ${token}`});
+        await execute({command: `firebase functions:config:set ${secret.target}="${secret.key}" --project ${data.projectId} ${tokenSuffix}`});
         infoMessage(`\n${secret.target} created. Note, you'll need to deploy functions in order for this to persist.`);
     }
 
@@ -754,7 +771,7 @@ async function init() {
 
         if (ghToken) {
             infoMessage('\nCreating a ghtoken in firebase secrets.');
-            await execute({command: `firebase functions:config:set prod.ghtoken=${ghToken} --project ${data.projectId} --token ${token}`});
+            await execute({command: `firebase functions:config:set prod.ghtoken=${ghToken} --project ${data.projectId} ${tokenSuffix}`});
             infoMessage(`\nghtoken set, note, you'll need to deploy functions in order for this to persist.`);
         }
 
