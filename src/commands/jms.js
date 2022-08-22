@@ -138,6 +138,11 @@ async function init() {
             default: 'jaspero-jms',
             when: (data) => data.newFirebase,
             validate: (id) => {
+
+                if (id.length < 6) {
+                    return 'ID must be at least 6 characters!';
+                }
+
                 if (id.length > 30) {
                     return 'ID must have 30 or less characters!';
                 }
