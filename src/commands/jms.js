@@ -1036,15 +1036,15 @@ async function createModule() {
     });
 
     propertySpreads.forEach(replace => {
-        final.replace(`"${replace}": true`, `...${replace}`)
+        final.replace(`'${replace}': true`, `...${replace}`)
     });
 
     definitionSpreads.forEach(replace => {
-        final.replace(`"${replace}": true`, `...${replace}`)
+        final.replace(`'${replace}': true`, `...${replace}`)
     });
 
     writeFileSync(path, [
-        `import {Module} from './shared/module.type';`,
+        `import {Module} from '../interfaces/module.interface';`,
         ...data.timestamp ? [`import {CREATED_ON} from './shared/created-on';`] : [],
         '',
         final
