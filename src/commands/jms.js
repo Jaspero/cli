@@ -1027,7 +1027,7 @@ async function createModule() {
         })
     }
 
-    const path = resolve(process.cwd(), `setup/modules/${data.id}.module.ts`);
+    const path = resolve(process.cwd(), `definitions/modules/${data.id}.module.ts`);
 
     let final = `export const ${data.id.toUpperCase()}_MODULE: Module = ${inspect(moduleToUse, {depth: null}).toString()}`;
 
