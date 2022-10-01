@@ -985,7 +985,7 @@ async function createModule() {
         },
         {
             name: 'timestamp',
-            message: 'Add Timestamp?',
+            message: 'Add Timestamp (createdOn)?',
             type: 'confirm',
             default: true,
         },
