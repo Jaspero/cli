@@ -1,6 +1,6 @@
 const {resolve} = require('path');
 const {existsSync, writeFileSync, readFileSync} = require('fs');
-const {execSync, exec} = require('child_process');
+const {execSync} = require('child_process');
 const {inspect} = require('util');
 const inquirer = require('inquirer');
 const replaceInFile = require('replace-in-file');
@@ -28,7 +28,7 @@ async function deployFunctions(route = process.cwd(), token, projectId) {
         return errorMessage(`Function deployment needs to run in an JMS project, but the functions folder couldn't be found.`);
     }
 
-    return execute({command: `cd ${path} && npm ci && npm run build:definitions && npm run build && firebase deploy --only functions --project ${projectId} --token ${token}`, options: {}});
+    return execute({command: `cd ${path} && npm ci && npm run build:definitions && npm run copy:definitions && npm run build && firebase deploy --only functions --project ${projectId} --token ${token}`, options: {}});
 }
 
 async function deployFirestore(prefix, route = process.cwd(), token, projectId) {
@@ -43,7 +43,14 @@ async function deployFirestore(prefix, route = process.cwd(), token, projectId) 
 }
 
 function deployFirestoreRules(route = process.cwd(), token, projectId) {
-    return deployFirestore('rules', route = process.cwd(), token, projectId);
+    route = JSON.stringify(route || {}) === '{}' ? process.cwd() : route;
+    const path = resolve(route);
+
+    if (!existsSync(path)) {
+        return errorMessage(`Rules deployment needs to run in an JMS project.`);
+    }
+
+    return execute({command: `cd ${path}/definitions && npm run deploy:rules`, options: {}});
 }
 
 function deployFirestoreIndexes(route = process.cwd(), token, projectId) {
