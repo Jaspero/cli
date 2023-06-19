@@ -809,6 +809,17 @@ async function init() {
     await pressEnter();
 
     /**
+     * Enable Storage
+     */
+    setTimeout(() =>
+        open(`https://console.firebase.google.com/project/${data.projectId}/storage`)
+    );
+
+    infoMessage('\nPlease Enable Storage for this project.');
+
+    await pressEnter();    
+
+    /**
      * Enable Auth
      */
     setTimeout(() =>
